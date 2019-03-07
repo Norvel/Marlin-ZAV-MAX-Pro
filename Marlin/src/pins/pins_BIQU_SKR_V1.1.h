@@ -65,9 +65,10 @@
 // Temperature Sensors
 //  3.3V max when defined as an analog input
 //
-#define TEMP_BED_PIN       0   // Analog Input
+// TODO: 2 and 0 switched because port is broken
+#define TEMP_BED_PIN       2   // Analog Input
 #define TEMP_0_PIN         1   // Analog Input
-#define TEMP_1_PIN         2   // Analog Input
+#define TEMP_1_PIN         0   // Analog Input
 
 //
 // Heaters / Fans

@@ -458,9 +458,9 @@
   //#define DEFAULT_Kd 440
 
   // S245
-  #define DEFAULT_Kp 11.05
-  #define DEFAULT_Ki 0.83
-  #define DEFAULT_Kd 36.66
+  #define DEFAULT_Kp 8.20
+  #define DEFAULT_Ki 0.45
+  #define DEFAULT_Kd 37.58
 
 #endif // PIDTEMP
 
@@ -510,9 +510,9 @@
   //#define DEFAULT_bedKd 1675.16
 
   // 230V 600W silicone
-  #define DEFAULT_bedKp 82.83
-  #define DEFAULT_bedKi 16.31
-  #define DEFAULT_bedKd 105.18
+  #define DEFAULT_bedKp 89.82
+  #define DEFAULT_bedKi 15.37
+  #define DEFAULT_bedKd 131.26
   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
 
@@ -693,7 +693,7 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 800, 260 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 6400, 2080 }
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -1274,7 +1274,7 @@
 
 // Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (50*60)
-#define HOMING_FEEDRATE_Z  (4*60)
+#define HOMING_FEEDRATE_Z  (20*60)
 
 // Validate that endstops are triggered on homing moves
 #define VALIDATE_HOMING_ENDSTOPS
