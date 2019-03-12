@@ -431,7 +431,7 @@
 /**
  * Default hotend offsets, if not defined
  */
-#if HOTENDS > 1
+#if HAS_HOTEND_OFFSET
   #ifndef HOTEND_OFFSET_X
     #define HOTEND_OFFSET_X { 0 } // X offsets for each extruder
   #endif
@@ -914,12 +914,14 @@
 #define HAS_TEMP_ADC_2 HAS_ADC_TEST(2)
 #define HAS_TEMP_ADC_3 HAS_ADC_TEST(3)
 #define HAS_TEMP_ADC_4 HAS_ADC_TEST(4)
+#define HAS_TEMP_ADC_5 HAS_ADC_TEST(5)
 #define HAS_TEMP_ADC_BED HAS_ADC_TEST(BED)
 #define HAS_TEMP_ADC_CHAMBER HAS_ADC_TEST(CHAMBER)
 
 #define HAS_TEMP_HOTEND (HAS_TEMP_ADC_0 || ENABLED(HEATER_0_USES_MAX6675))
 #define HAS_TEMP_BED HAS_TEMP_ADC_BED
 #define HAS_TEMP_CHAMBER HAS_TEMP_ADC_CHAMBER
+#define HAS_HEATED_CHAMBER (HAS_TEMP_CHAMBER && PIN_EXISTS(CHAMBER_HEATER))
 
 // Heaters
 #define HAS_HEATER_0 (PIN_EXISTS(HEATER_0))
@@ -927,6 +929,7 @@
 #define HAS_HEATER_2 (PIN_EXISTS(HEATER_2))
 #define HAS_HEATER_3 (PIN_EXISTS(HEATER_3))
 #define HAS_HEATER_4 (PIN_EXISTS(HEATER_4))
+#define HAS_HEATER_5 (PIN_EXISTS(HEATER_5))
 #define HAS_HEATER_BED (PIN_EXISTS(HEATER_BED))
 
 // Shorthand for common combinations
@@ -943,7 +946,8 @@
 // Thermal protection
 #define HAS_THERMALLY_PROTECTED_BED (HAS_HEATED_BED && ENABLED(THERMAL_PROTECTION_BED))
 #define WATCH_HOTENDS (ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0)
-#define WATCH_THE_BED (HAS_THERMALLY_PROTECTED_BED && WATCH_BED_TEMP_PERIOD > 0)
+#define WATCH_BED (HAS_THERMALLY_PROTECTED_BED && WATCH_BED_TEMP_PERIOD > 0)
+#define WATCH_CHAMBER (HAS_HEATED_CHAMBER && ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0)
 
 // Auto fans
 #define HAS_AUTO_FAN_0 (PIN_EXISTS(E0_AUTO_FAN))
@@ -1106,6 +1110,10 @@
   #define HEATER_4_INVERTING false
 #endif
 
+#if HAS_HEATER_5 && !defined(HEATER_5_INVERTING)
+  #define HEATER_5_INVERTING false
+#endif
+
 /**
  * Helper Macros for heaters and extruder fan
  */
@@ -1146,8 +1154,25 @@
 #endif
 
 /**
+ * Heated chamber requires settings
+ */
+#if HAS_HEATED_CHAMBER
+  #ifndef MAX_CHAMBER_POWER
+    #define MAX_CHAMBER_POWER 255
+  #endif
+  #ifndef HEATER_CHAMBER_INVERTING
+    #define HEATER_CHAMBER_INVERTING false
+  #endif
+  #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER_PIN, (v) ^ HEATER_CHAMBER_INVERTING)
+#endif
+
+/**
  * Up to 3 PWM fans
  */
+#ifndef FAN_INVERTING
+  #define FAN_INVERTING false
+#endif
+
 #if HAS_FAN2
   #define FAN_COUNT 3
 #elif HAS_FAN1
@@ -1159,14 +1184,14 @@
 #endif
 
 #if HAS_FAN0
-  #define WRITE_FAN(v) WRITE(FAN_PIN, v)
+  #define WRITE_FAN(v) WRITE(FAN_PIN, (v) ^ FAN_INVERTING)
   #define WRITE_FAN0(v) WRITE_FAN(v)
 #endif
 #if HAS_FAN1
-  #define WRITE_FAN1(v) WRITE(FAN1_PIN, v)
+  #define WRITE_FAN1(v) WRITE(FAN1_PIN, (v) ^ FAN_INVERTING)
 #endif
 #if HAS_FAN2
-  #define WRITE_FAN2(v) WRITE(FAN2_PIN, v)
+  #define WRITE_FAN2(v) WRITE(FAN2_PIN, (v) ^ FAN_INVERTING)
 #endif
 #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
@@ -1190,6 +1215,13 @@
   #error "FAN_MAX_PWM must be a value from 0 to 255."
 #elif FAN_MIN_PWM > FAN_MAX_PWM
   #error "FAN_MIN_PWM must be less than or equal to FAN_MAX_PWM."
+#endif
+
+/**
+ * FAST PWM FAN Settings
+ */
+#if ENABLED(FAST_PWM_FAN) && !defined(FAST_PWM_FAN_FREQUENCY)
+  #define FAST_PWM_FAN_FREQUENCY ((F_CPU) / (2 * 255 * 1)) // Fan frequency default
 #endif
 
 /**
@@ -1512,9 +1544,9 @@
 #endif
 
 /**
- * VIKI2, miniVIKI, AZSMZ_12864, and MKS_12864OLED_SSD1306 require DOGLCD_SCK and DOGLCD_MOSI to be defined.
+ * Make sure DOGLCD_SCK and DOGLCD_MOSI are defined.
  */
-#if ENABLED(VIKI2) || ENABLED(miniVIKI) || ENABLED(AZSMZ_12864) || ENABLED(MKS_12864OLED_SSD1306)
+#if ENABLED(DOGLCD)
   #ifndef DOGLCD_SCK
     #define DOGLCD_SCK  SCK_PIN
   #endif

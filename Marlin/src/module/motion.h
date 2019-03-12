@@ -90,10 +90,6 @@ extern int16_t feedrate_percentage;
   constexpr uint8_t active_extruder = 0;
 #endif
 
-#if HAS_HOTEND_OFFSET
-  extern float hotend_offset[XYZ][HOTENDS];
-#endif
-
 FORCE_INLINE float pgm_read_any(const float *p) { return pgm_read_float(p); }
 FORCE_INLINE signed char pgm_read_any(const signed char *p) { return pgm_read_byte(p); }
 
@@ -115,18 +111,29 @@ XYZ_DEFS(signed char, home_dir, HOME_DIR);
   #define update_workspace_offset(x) NOOP
 #endif
 
+#if HAS_HOTEND_OFFSET
+  extern float hotend_offset[XYZ][HOTENDS];
+  void reset_hotend_offsets();
+#else
+  constexpr float hotend_offset[XYZ][HOTENDS] = { { 0 }, { 0 }, { 0 } };
+#endif
+
 #if HAS_SOFTWARE_ENDSTOPS
   extern bool soft_endstops_enabled;
   extern float soft_endstop_min[XYZ], soft_endstop_max[XYZ];
-  void clamp_to_software_endstops(float target[XYZ]);
-  void update_software_endstops(const AxisEnum axis);
+  void update_software_endstops(const AxisEnum axis
+    #if HAS_HOTEND_OFFSET
+      , const uint8_t old_tool_index=0, const uint8_t new_tool_index=0
+    #endif
+  );
 #else
-  constexpr bool soft_endstops_enabled = false;
-  constexpr float soft_endstop_min[XYZ] = { X_MIN_BED, Y_MIN_BED, Z_MIN_POS },
-                  soft_endstop_max[XYZ] = { X_MAX_BED, Y_MAX_BED, Z_MAX_POS };
-  #define clamp_to_software_endstops(x) NOOP
-  #define update_software_endstops(x) NOOP
+  constexpr bool soft_endstops_enabled = true;
+  constexpr float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+                  soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
+  #define update_software_endstops(...) NOOP
 #endif
+
+void clamp_to_software_endstops(float target[XYZ]);
 
 void report_current_position();
 
@@ -186,20 +193,7 @@ void clean_up_after_endstop_or_probe_move();
 // Homing
 //
 
-#define HAS_AXIS_UNHOMED_ERR (                                                     \
-         ENABLED(Z_PROBE_ALLEN_KEY)                                                \
-      || ENABLED(Z_PROBE_SLED)                                                     \
-      || HAS_PROBING_PROCEDURE                                                     \
-      || HOTENDS > 1                                                               \
-      || ENABLED(NOZZLE_CLEAN_FEATURE)                                             \
-      || ENABLED(NOZZLE_PARK_FEATURE)                                              \
-      || (ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(HOME_BEFORE_FILAMENT_CHANGE)) \
-      || HAS_M206_COMMAND                                                          \
-    ) || ENABLED(NO_MOTION_BEFORE_HOMING)
-
-#if HAS_AXIS_UNHOMED_ERR
-  bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
-#endif
+bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
 
 #if ENABLED(NO_MOTION_BEFORE_HOMING)
   #define MOTION_CONDITIONS (IsRunning() && !axis_unhomed_error())
