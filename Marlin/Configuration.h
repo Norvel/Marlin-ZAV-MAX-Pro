@@ -439,9 +439,9 @@
   //#define SLOW_PWM_HEATERS      // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
   //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
                                   // Set/get with gcode: M301 E[extruder number, 0-2]
-  #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
+  #define PID_FUNCTIONAL_RANGE 30 // If the temperature difference between the target temperature and the actual temperature
                                   // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
-
+  #define MAX_OVERSHOOT_PID_AUTOTUNE 30
   // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
 
   // Ultimaker
@@ -459,10 +459,10 @@
   //#define DEFAULT_Ki 2.25
   //#define DEFAULT_Kd 440
 
-  // S245
-  #define DEFAULT_Kp 8.20
-  #define DEFAULT_Ki 0.45
-  #define DEFAULT_Kd 37.58
+  // S245 C20
+  #define DEFAULT_Kp 7.07
+  #define DEFAULT_Ki 0.40
+  #define DEFAULT_Kd 31.14
 
 #endif // PIDTEMP
 
@@ -512,9 +512,9 @@
   //#define DEFAULT_bedKd 1675.16
 
   // 230V 600W silicone
-  #define DEFAULT_bedKp 89.82
-  #define DEFAULT_bedKi 15.37
-  #define DEFAULT_bedKd 131.26
+  #define DEFAULT_bedKp 81.49
+  #define DEFAULT_bedKi 13.75
+  #define DEFAULT_bedKd 120.72
   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
 
