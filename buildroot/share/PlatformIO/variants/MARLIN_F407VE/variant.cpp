@@ -98,19 +98,18 @@ const PinName digitalPin[] = {
 }
 #endif
 
-// ----------------------------------------------------------------------------
+// ------------------------
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
+ /**
   * @brief  System Clock Configuration
   * @param  None
   * @retval None
   */
-WEAK void SystemClock_Config(void)
-{
+WEAK void SystemClock_Config() {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;

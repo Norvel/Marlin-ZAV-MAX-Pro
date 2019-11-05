@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -316,19 +316,24 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
 /**
  * The axis order in all axis related arrays is X, Y, Z, E
  */
+void enable_e_steppers();
 void enable_all_steppers();
 void disable_e_stepper(const uint8_t e);
 void disable_e_steppers();
 void disable_all_steppers();
 
-void kill(PGM_P const lcd_msg=NULL);
-void minkill();
+void kill(PGM_P const lcd_error=nullptr, PGM_P const lcd_component=nullptr, const bool steppers_off=false);
+void minkill(const bool steppers_off=false);
 
 void quickstop_stepper();
 
 extern bool Running;
 inline bool IsRunning() { return  Running; }
 inline bool IsStopped() { return !Running; }
+
+bool printingIsActive();
+bool printingIsPaused();
+void startOrResumeJob();
 
 extern bool wait_for_heatup;
 
@@ -347,10 +352,10 @@ extern millis_t max_inactive_time, stepper_inactive_time;
   extern uint8_t controllerfan_speed;
 #endif
 
-#if HAS_POWER_SWITCH
+#if ENABLED(PSU_CONTROL)
   extern bool powersupply_on;
-  #define PSU_PIN_ON()  do{ OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE); powersupply_on = true; }while(0)
-  #define PSU_PIN_OFF() do{ OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP); powersupply_on = false; }while(0)
+  #define PSU_PIN_ON()  do{ OUT_WRITE(PS_ON_PIN,  PSU_ACTIVE_HIGH); powersupply_on = true; }while(0)
+  #define PSU_PIN_OFF() do{ OUT_WRITE(PS_ON_PIN, !PSU_ACTIVE_HIGH); powersupply_on = false; }while(0)
   #if ENABLED(AUTO_POWER_CONTROL)
     #define PSU_ON()  powerManager.power_on()
     #define PSU_OFF() powerManager.power_off()
@@ -364,14 +369,12 @@ bool pin_is_protected(const pin_t pin);
 void protected_pin_err();
 
 #if HAS_SUICIDE
-  inline void suicide() { OUT_WRITE(SUICIDE_PIN, LOW); }
-#endif
-
-#if HAS_FILAMENT_SENSOR
-  void event_filament_runout();
+  inline void suicide() { OUT_WRITE(SUICIDE_PIN, SUICIDE_PIN_INVERTING); }
 #endif
 
 #if ENABLED(G29_RETRY_AND_RECOVER)
   void event_probe_recover();
   void event_probe_failure();
 #endif
+
+extern const char G28_STR[], M21_STR[], M23_STR[], M24_STR[], NUL_STR[];
