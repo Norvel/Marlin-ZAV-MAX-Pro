@@ -27,10 +27,10 @@
   #include "../libs/buzzer.h"
 #endif
 
-#define HAS_DIGITAL_BUTTONS (!HAS_ADC_BUTTONS && ENABLED(NEWPANEL) || BUTTON_EXISTS(EN1, EN2) || ANY_BUTTON(ENC, BACK, UP, DWN, LFT, RT))
-#define HAS_SHIFT_ENCODER   (!HAS_ADC_BUTTONS && (ENABLED(REPRAPWORLD_KEYPAD) || (HAS_SPI_LCD && DISABLED(NEWPANEL))))
-#define HAS_ENCODER_WHEEL  ((!HAS_ADC_BUTTONS && ENABLED(NEWPANEL)) || BUTTON_EXISTS(EN1, EN2))
 #define HAS_ENCODER_ACTION (HAS_LCD_MENU || ENABLED(ULTIPANEL_FEEDMULTIPLY))
+#define HAS_ENCODER_WHEEL  ((!HAS_ADC_BUTTONS && ENABLED(NEWPANEL)) || BUTTON_EXISTS(EN1, EN2))
+#define HAS_DIGITAL_BUTTONS (HAS_ENCODER_WHEEL || ANY_BUTTON(ENC, BACK, UP, DWN, LFT, RT))
+#define HAS_SHIFT_ENCODER   (!HAS_ADC_BUTTONS && (ENABLED(REPRAPWORLD_KEYPAD) || (HAS_SPI_LCD && DISABLED(NEWPANEL))))
 
 // I2C buttons must be read in the main thread
 #define HAS_SLOW_BUTTONS EITHER(LCD_I2C_VIKI, LCD_I2C_PANELOLU2)
@@ -304,7 +304,7 @@ public:
         static void set_progress(const progress_t p) { progress_override = _MIN(p, 100U * (PROGRESS_SCALE)); }
         static void set_progress_done() { progress_override = (PROGRESS_MASK + 1U) + 100U * (PROGRESS_SCALE); }
         static void progress_reset() { if (progress_override & (PROGRESS_MASK + 1U)) set_progress(0); }
-        #if ENABLED(USE_M73_REMAINING_TIME)
+        #if BOTH(LCD_SET_PROGRESS_MANUALLY, USE_M73_REMAINING_TIME)
           static uint32_t remaining_time;
           FORCE_INLINE static void set_remaining_time(const uint32_t r) { remaining_time = r; }
           FORCE_INLINE static uint32_t get_remaining_time() { return remaining_time; }
@@ -406,14 +406,16 @@ public:
 
   #else // No LCD
 
+    // Send status to host as a notification
+    void set_status(const char* message, const bool=false);
+    void set_status_P(PGM_P message, const int8_t=0);
+    void status_printf_P(const uint8_t, PGM_P message, ...);
+
     static inline void init() {}
     static inline void update() {}
     static inline void refresh() {}
     static inline void return_to_status() {}
     static inline void set_alert_status_P(PGM_P const) {}
-    static inline void set_status(const char* const, const bool=false) {}
-    static inline void set_status_P(PGM_P const, const int8_t=0) {}
-    static inline void status_printf_P(const uint8_t, PGM_P const, ...) {}
     static inline void reset_status() {}
     static inline void reset_alert_level() {}
     static constexpr bool has_status() { return false; }
@@ -423,6 +425,7 @@ public:
   #if HAS_LCD_MENU
 
     #if ENABLED(TOUCH_BUTTONS)
+      static uint8_t touch_buttons;
       static uint8_t repeat_delay;
     #endif
 
@@ -467,6 +470,7 @@ public:
     static void synchronize(PGM_P const msg=nullptr);
 
     static screenFunc_t currentScreen;
+    static bool screen_changed;
     static void goto_screen(const screenFunc_t screen, const uint16_t encoder=0, const uint8_t top=0, const uint8_t items=0);
     static void save_previous_screen();
 
